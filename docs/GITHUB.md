@@ -1,96 +1,63 @@
 # GitHub 上传说明
 
-三笠优选使用 GitHub Git Data API 将导出的优选文件批量提交到指定仓库，不需要本地安装 Git。
+软件可以把优选结果直接上传到 GitHub，不需要在电脑上安装 Git。
 
-## 1. 创建仓库
+## 1. 创建结果仓库
 
-1. 登录 GitHub，点击右上角「+ → New repository」。
-2. 填写仓库名，例如 `mikasa-results`。
-3. 如果要把 raw 直链直接放进脚本，仓库必须设为 **Public**；私有仓库的 raw 链接需要登录或 Token。
-4. 可以勾选「Add a README file」，也可以创建完全空仓库；空仓库首次上传会自动创建初始提交和默认分支。
-5. 记下仓库地址，例如 `https://github.com/YOUR_NAME/mikasa-results`。
+1. 在 GitHub 新建一个仓库，例如 `mikasa-results`。
+2. 如果希望脚本直接读取 raw 链接，仓库需要设为 **Public**。
+3. 私有仓库的 raw 链接需要登录或 Token，脚本无法匿名读取。
 
 ## 2. 创建 Token
 
 1. 打开 GitHub「Settings → Developer settings → Personal access tokens → Fine-grained tokens」。
-2. 点击「Generate new token」。
-3. 选择目标仓库（Repository access → Only select repositories）。
-4. 权限设置：
-   - **Contents：Read and write**（必需）
-   - Metadata：Read-only（自动包含）
-5. 生成后复制 Token（`github_pat_...` 或 `ghp_...`），只显示一次。
+2. 新建 Token，并只选择目标结果仓库。
+3. 为仓库内容授予 **Read and write** 权限。
+4. 生成后立即复制 Token，页面关闭后不会再次显示。
 
-> 不要使用过期、泄露或来源不明的旧 Token。软件不会把 Token 写入日志、SQLite 或导出文件。
+请勿使用来源不明、已经泄露或过期的 Token。
 
-## 3. 在软件中配置
+## 3. 配置并上传
 
-1. 打开「GitHub 上传」。
-2. 填写：
-   - 仓库：`https://github.com/YOUR_NAME/mikasa-results` 或 `YOUR_NAME/mikasa-results`
-   - 分支：默认 `main`（也可填 `master` 或新分支名）
-   - 远程目录：默认 `mikasa-results`
-   - Token：粘贴上一步生成的 Token
-3. 点击「保存配置」。Token 保存到 Windows 凭据管理器。
-4. 点击「检查仓库」。软件会读取仓库默认分支、目标分支是否存在、当前 Token 是否具有 push 权限；未通过检查时不会允许上传。
-5. 点击「开始上传」，在弹出的窗口中选择：
-   - 合并全部地区（生成 `all.txt`）
-   - 按地区拆分（生成 `HK/all.txt`、`JP/all.txt`、`US/all.txt` 等，并额外生成 `all.txt`）
-   - 最低下载速度、最高延迟
-   - TXT 备注字段（城市、速度、延迟、colo、来源）
-   - TXT 或 CSV
-6. 点击「上传」，软件会：
-   - 读取仓库默认分支的最新 commit 与 tree
-   - 若仓库为空、默认分支尚不存在，先通过 Contents API 写入第一个文件，创建初始 commit 与默认分支
-   - 为每个文件创建 blob
-   - 创建新 tree 与新 commit
-   - 更新目标分支 ref
-   - 回读 ref 校验提交 SHA
-7. 上传历史会记录仓库、分支、文件数、commit SHA 与结果。
+1. 打开软件「GitHub 上传」。
+2. 填写仓库地址、分支、远程目录和 Token。
+3. 点击「保存配置」，Token 会保存在 Windows 凭据管理器中。
+4. 点击「检查仓库」，确认访问权限和目标分支正常。
+5. 点击「开始上传」，选择上传范围、文件格式、速度和延迟条件、备注字段，以及覆盖或追加更新。
+6. 上传完成后可复制 raw 直链或 jsDelivr 加速直链。
 
-## 4. 上传失败排查
-
-| 状态 | 原因 | 处理 |
-|---|---|---|
-| 401 | Token 无效或过期 | 重新生成 Token |
-| 403 | 权限不足或分支保护 | 确认 Contents 读写权限，或关闭分支保护 |
-| 404 | 仓库不存在/无访问权限/分支不存在 | 检查仓库地址与分支名 |
-| 409 | 空仓库尚无默认分支，或分支被并发修改 | 1.0.4 已自动处理空仓库；并发冲突时重试，软件会重新读取最新 ref |
-| 网络错误 | 代理、DNS 或 GitHub 不可达 | 检查网络后重试 |
-
-上传失败不会影响本地导出。可先导出到本地目录，再重试上传。
-
-## 5. 文件目录与脚本直链
+默认推荐目录结构：
 
 ```text
 mikasa-results/
 ├─ all.txt
-├─ HK/
-│  └─ all.txt
-├─ JP/
-│  └─ all.txt
-└─ US/
-   └─ all.txt
+├─ HK/all.txt
+├─ JP/all.txt
+└─ US/all.txt
 ```
 
-公开仓库上传完成后可直接复制 raw 直链：
+公开仓库直链示例：
 
 ```text
 https://raw.githubusercontent.com/用户名/仓库名/main/mikasa-results/all.txt
-https://raw.githubusercontent.com/用户名/仓库名/main/mikasa-results/JP/all.txt
-```
-
-jsDelivr 加速直链：
-
-```text
 https://cdn.jsdelivr.net/gh/用户名/仓库名@main/mikasa-results/all.txt
 ```
 
-文件放在 `mikasa-results/` 子目录即可，不需要放到仓库根目录。私有仓库不会提供
-匿名 raw 访问；如果脚本不能携带 Token，请把仓库改成 Public。
+## 4. 常见错误
 
-## 6. 安全建议
+| 状态 | 处理 |
+| --- | --- |
+| 401 | 重新生成 Token |
+| 403 | 检查 Token 是否具有目标仓库内容读写权限，或关闭分支保护 |
+| 404 | 检查仓库地址、分支名和 Token 访问范围 |
+| 409 | 仓库或分支正被同时修改，稍后重试 |
+| 网络错误 | 检查代理、DNS 和 GitHub 连通性 |
 
-- 使用 Fine-grained Token，只授权目标仓库，不勾选无关权限。
-- 定期轮换 Token。
-- 不要把 Token 粘贴到聊天、Issue、截图或公开文档。
-- 如怀疑泄露，立即在 GitHub 撤销并重新生成。
+上传失败不会影响本地导出。可以先生成到本地目录，再重新上传。
+
+## 安全建议
+
+- 只授权目标仓库，不授予无关权限。
+- 定期更换 Token。
+- 不要把 Token 发到聊天、截图、Issue 或公开仓库。
+- 如怀疑泄露，立即在 GitHub 撤销旧 Token。

@@ -13,6 +13,8 @@ dist-ssr
 *.local
 artifacts/
 release/
+release-newrepo-*/
+mikasa-results/
 src-tauri/target/
 *.sqlite
 *.sqlite-shm
@@ -26,9 +28,8 @@ $null
 *.tmp
 *.tmpdir/
 
-# 打赏收款码原图与本地解密密钥不进入公开仓库
+# Local private files
 private/
-.env.donation.local
 .env*.local
 
 # Editor directories and files
