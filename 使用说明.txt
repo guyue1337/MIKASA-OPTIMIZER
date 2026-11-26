@@ -50,3 +50,4 @@
    默认测速导出目录：%USERPROFILE%\Documents\三笠优选导出\
 
 版本：1.0.9
+
